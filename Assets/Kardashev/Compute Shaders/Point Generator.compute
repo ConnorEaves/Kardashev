@@ -1,0 +1,25 @@
+﻿#pragma kernel Relaxation
+
+int cellCount;
+float radius;
+StructuredBuffer<float3> points;
+RWStructuredBuffer<float3> relaxedPoints;
+
+[numthreads(100,1,1)]
+void Relaxation(uint3 id : SV_DispatchThreadID)
+{
+    float3 p = points[id.x];
+    float3 r = float3(0,0,0);
+    
+    [loop]
+    for (uint i = 0; i < cellCount; i++)
+    {
+        if (id.x != i)
+        {
+            float3 p0 = points[i];
+            r += (p - p0) / dot (p - p0, p - p0);
+        }
+    }
+    relaxedPoints[id.x] += r;
+    relaxedPoints[id.x] = normalize(relaxedPoints[id.x]) * radius;
+}
