@@ -17,6 +17,8 @@ public static class VoronoiMetrics {
 	public const float NoiseScale = 0.05f;
 	public const float CellPerturbStrength = 0.2f;
 	public const float ElevationPerturbSrength = 0.05f;
+
+	public const int ChunkSize = 25;
 	
 	public static Vector3 GetFirstCorner (VoronoiCell cell, VoronoiDirection direction) {
 		return cell.Corners[direction];
@@ -87,6 +89,6 @@ public static class VoronoiMetrics {
 		Vector4 y = NoiseSource.GetPixelBilinear (position.x * NoiseScale, position.z * NoiseScale);
 		Vector4 z = NoiseSource.GetPixelBilinear (position.x * NoiseScale, position.y * NoiseScale);
 		
-		return x * blendWeights.x + y * blendWeights.y + z * blendWeights.z;
+		return (x * blendWeights.x) + (y * blendWeights.y) + (z * blendWeights.z);
 	}
 }

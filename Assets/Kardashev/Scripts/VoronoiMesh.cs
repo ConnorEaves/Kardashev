@@ -9,19 +9,14 @@ public class VoronoiMesh : MonoBehaviour {
 	private Mesh _voronoiMesh;
 	private MeshCollider _meshCollider;
 	
-	private List<Vector3> _vertices = new List<Vector3> ();
-	private List<int> _triangles = new List<int> ();
-	private List<Vector2> _uvs = new List<Vector2> ();
-	private List<Color> _colors = new List<Color> ();
+	private static List<Vector3> _vertices = new List<Vector3> ();
+	private static List<int> _triangles = new List<int> ();
+	private static List<Color> _colors = new List<Color> ();
 
 	private void Awake () {
 		GetComponent<MeshFilter> ().mesh = _voronoiMesh = new Mesh ();
 		_voronoiMesh.name = "Voronoi Mesh";
 		_meshCollider = gameObject.AddComponent<MeshCollider> ();
-		
-		_vertices = new List<Vector3> ();
-		_triangles = new List<int> ();
-		_colors = new List<Color> ();
 	}
 
 	public void Triangulate (VoronoiCell[] cells) {

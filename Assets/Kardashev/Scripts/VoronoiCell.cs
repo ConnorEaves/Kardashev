@@ -9,20 +9,49 @@ public class VoronoiCell : MonoBehaviour, IVertex {
 	public List<VoronoiDirection> EdgeConnections = new List<VoronoiDirection> ();
 	public List<VoronoiDirection> CornerConnections = new List<VoronoiDirection> ();
 
-	public Color Color = Color.white;
+	public VoronoiGridChunk Chunk;
+	
+	private Color _color;
+	public Color Color {
+		get { return _color; }
+		set {
+			if (_color == value) {
+				return;
+			}
+			_color = value;
+			Refresh ();
+		}
+	}
 
 	public float BaseElevation;
 	
-	private int _elevation;
+	private int _elevation = int.MinValue;
 	public int Elevation {
 		get { return _elevation; }
 		set {
+			if (_elevation == value) {
+				return;
+			}
 			_elevation = value;
 			Vector3 position = transform.localPosition;
 			position = position.normalized * (BaseElevation + value * VoronoiMetrics.ElevationStep +
 			                                  (VoronoiMetrics.SampleNoise (position).y * 2f - 1f) *
 			                                  VoronoiMetrics.ElevationPerturbSrength);
 			transform.localPosition = position;
+			Refresh ();
+		}
+	}
+
+	private void Refresh () {
+		if (Chunk) {
+			Chunk.Refresh ();
+
+			for (int i = 0; i < Neighbors.Count; ++i) {
+				VoronoiCell neighbor = Neighbors[i];
+				if (neighbor.Chunk != null && neighbor.Chunk != Chunk) {
+					neighbor.Chunk.Refresh ();
+				}
+			}
 		}
 	}
 

@@ -26,14 +26,13 @@ public class VoronoiGrid : MonoBehaviour {
 	// Noise Soruce
 	public Texture2D NoiseSource;
 
-	// Cell Prefab
+	// Prefabs
 	public VoronoiCell CellPrefab;
+	public VoronoiGridChunk ChunkPrefab;
 
-	// Cells
+	// Cells lists
 	private VoronoiCell[] _cells;
-
-	// Mesh
-	private VoronoiMesh _voronoiMesh;
+	private VoronoiGridChunk[] _chunks;
 	
 	// Atmosphere
 	private SgtAtmosphere _atmosphere;
@@ -46,7 +45,6 @@ public class VoronoiGrid : MonoBehaviour {
 	private void Awake () {
 		VoronoiMetrics.NoiseSource = NoiseSource;
 		
-		_voronoiMesh = GetComponentInChildren<VoronoiMesh> ();
 		_atmosphere = GetComponentInChildren<SgtAtmosphere> ();
 	}
 
@@ -58,10 +56,6 @@ public class VoronoiGrid : MonoBehaviour {
 		position = transform.InverseTransformPoint (position);
 		return _cells.OrderByDescending (x => Vector3.Dot (x.transform.localPosition.normalized, position.normalized))
 					 .First ();
-	}
-
-	public void Refresh () {
-		_voronoiMesh.Triangulate (_cells);
 	}
 
 	/// <summary>
@@ -76,12 +70,11 @@ public class VoronoiGrid : MonoBehaviour {
 		
 		Random.InitState (Seed);
 
-		yield return DestroyChildCells ();
+		yield return DestroyChildChunks ();
 		yield return CreateCells ();
 		yield return ConnectCells ();
 		yield return FinalizeCells ();
-		
-		_voronoiMesh.Triangulate (_cells);
+		yield return CreateChunks ();
 		
 		_atmosphere.InnerMeshRadius = Radius;
 		_atmosphere.Height = VoronoiMetrics.ElevationStep * (10f + 1f);
@@ -97,6 +90,19 @@ public class VoronoiGrid : MonoBehaviour {
 		for (int i = transform.childCount - 1; i >= 0; --i) {
 			Transform child = transform.GetChild (i);
 			if (child != null && child.GetComponent<VoronoiCell> () != null) {
+				Destroy (child.gameObject);
+			}
+		}
+		yield return null;
+	}
+	
+	/// <summary>
+	/// Destroy any existing child chuks so that new chunks can be generated.
+	/// </summary>
+	private IEnumerator DestroyChildChunks () {
+		for (int i = transform.childCount - 1; i >= 0; --i) {
+			Transform child = transform.GetChild (i);
+			if (child != null && child.GetComponent<VoronoiGridChunk> () != null) {
 				Destroy (child.gameObject);
 			}
 		}
@@ -126,17 +132,17 @@ public class VoronoiGrid : MonoBehaviour {
 	/// <returns></returns>
 	private IEnumerator GeneratePoints (Vector3[] points) {
 		// Init with white noise
-		for (int i = 0; i < CellCount; ++i) {
+		for (int i = 0; i < points.Length; ++i) {
 			points[i] = Random.onUnitSphere * Radius;
 		}
 
 		// Create structures for passing and dispatching
 		int kernel = RelaxationShader.FindKernel ("Relaxation");
-		ComputeBuffer pointsBuffer = new ComputeBuffer (CellCount, 12);
-		ComputeBuffer relaxedPointsBuffer = new ComputeBuffer (CellCount, 12);
+		ComputeBuffer pointsBuffer = new ComputeBuffer (points.Length, 12);
+		ComputeBuffer relaxedPointsBuffer = new ComputeBuffer (points.Length, 12);
 		
 		// Assign shader variables
-		RelaxationShader.SetInt ("cellCount", CellCount);
+		RelaxationShader.SetInt ("cellCount", points.Length);
 		RelaxationShader.SetFloat ("radius", Radius);
 		RelaxationShader.SetBuffer (kernel, "points", pointsBuffer);
 		RelaxationShader.SetBuffer (kernel, "relaxedPoints", relaxedPointsBuffer);
@@ -146,7 +152,7 @@ public class VoronoiGrid : MonoBehaviour {
 			pointsBuffer.SetData (points);
 			relaxedPointsBuffer.SetData (points);
 
-			RelaxationShader.Dispatch (kernel, CellCount, 1, 1);
+			RelaxationShader.Dispatch (kernel, points.Length, 1, 1);
 
 			relaxedPointsBuffer.GetData (points);
 			yield return null;
@@ -256,5 +262,38 @@ public class VoronoiGrid : MonoBehaviour {
 		}
 
 		yield return null;
+	}
+
+	
+	private IEnumerator CreateChunks () {
+		int chunkCount = Mathf.CeilToInt(_cells.Length / VoronoiMetrics.ChunkSize);
+		_chunks = new VoronoiGridChunk[chunkCount];
+
+		Vector3[] points = new Vector3[chunkCount];
+		yield return GeneratePoints (points);
+
+		for (int i = 0; i < points.Length; ++i) {
+			CreateChunk (i, points[i]);
+		}
+
+		bool chunksFinished = false;
+		while (!chunksFinished) {
+			chunksFinished = true;
+			for (int i = 0; i < chunkCount; ++i) {
+				if (_chunks[i].ExtendChunk ()) {
+					chunksFinished = false;
+				}
+			}
+		}
+
+		yield return null;
+	}
+
+	private void CreateChunk (int i, Vector3 position) {
+		VoronoiGridChunk chunk = _chunks[i] = Instantiate (ChunkPrefab);
+		chunk.name = "Voronoi Grid Chunk " + i;
+		chunk.transform.SetParent (transform, false);
+		chunk.AddCell (GetCell (position));
+		chunk.AddToAtmosphere (_atmosphere);
 	}
 }

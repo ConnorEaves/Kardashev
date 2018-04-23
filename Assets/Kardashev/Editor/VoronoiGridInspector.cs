@@ -83,10 +83,12 @@ public class VoronoiGridInspector : Editor {
 
 		#endregion
 		
-		#region Cell Prefab
+		#region Prefabs
 
 		grid.CellPrefab =
 			(VoronoiCell) EditorGUILayout.ObjectField ("Cell Prefab", grid.CellPrefab, typeof (VoronoiCell), true);
+		grid.ChunkPrefab =
+			(VoronoiGridChunk) EditorGUILayout.ObjectField ("Chunk Prefab", grid.ChunkPrefab, typeof (VoronoiGridChunk), true);
 		
 		#endregion
 

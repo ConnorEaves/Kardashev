@@ -923,13 +923,13 @@
             <e p="VoronoiDirection.cs" t="Include" />
             <e p="VoronoiEdgeType.cs" t="Include" />
             <e p="VoronoiGrid.cs" t="Include" />
+            <e p="VoronoiGridChunk.cs" t="Include" />
             <e p="VoronoiMapCamera.cs" t="Include" />
             <e p="VoronoiMapEditor.cs" t="Include" />
             <e p="VoronoiMesh.cs" t="Include" />
             <e p="VoronoiMetrics.cs" t="Include" />
           </e>
           <e p="Shaders" t="Include">
-            <e p="New AmplifyShader.shader" t="Include" />
             <e p="Vertex Colors.shader" t="Include" />
           </e>
         </e>
