@@ -913,6 +913,7 @@
             <e p="VoronoiGridInspector.cs" t="Include" />
           </e>
           <e p="Scripts" t="Include">
+            <e p="EdgeVertices.cs" t="Include" />
             <e p="Extensions" t="Include">
               <e p="Int.cs" t="Include" />
               <e p="List.cs" t="Include" />
@@ -920,6 +921,7 @@
             </e>
             <e p="VoronoiCell.cs" t="Include" />
             <e p="VoronoiDirection.cs" t="Include" />
+            <e p="VoronoiEdgeType.cs" t="Include" />
             <e p="VoronoiGrid.cs" t="Include" />
             <e p="VoronoiMapCamera.cs" t="Include" />
             <e p="VoronoiMapEditor.cs" t="Include" />
@@ -928,6 +930,7 @@
           </e>
           <e p="Shaders" t="Include">
             <e p="New AmplifyShader.shader" t="Include" />
+            <e p="Vertex Colors.shader" t="Include" />
           </e>
         </e>
         <e p="MIConvexHull" t="Include">

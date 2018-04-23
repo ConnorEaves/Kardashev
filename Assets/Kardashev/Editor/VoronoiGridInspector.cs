@@ -9,8 +9,6 @@ public class VoronoiGridInspector : Editor {
 
 		#region Seed
 		
-		
-		
 		EditorGUI.BeginChangeCheck ();
 			grid.UseRandomSeed = EditorGUILayout.Toggle ("Random Seed", grid.UseRandomSeed);
 		
@@ -76,6 +74,12 @@ public class VoronoiGridInspector : Editor {
 		#region Color
 
 		grid.DefaultColor = EditorGUILayout.ColorField ("Default Color", grid.DefaultColor);
+
+		#endregion
+
+		#region Noise
+
+		grid.NoiseSource = (Texture2D)EditorGUILayout.ObjectField("Noise Source", grid.NoiseSource, typeof(Texture2D), true);
 
 		#endregion
 		

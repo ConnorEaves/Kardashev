@@ -7,6 +7,7 @@ public class VoronoiMapEditor : MonoBehaviour {
 	public VoronoiGrid VoronoiGrid;
 
 	private Color _activeColor;
+	private int _actiiveElevation;
 
 	void Awake () {
 		SelectColor (0);
@@ -22,12 +23,22 @@ public class VoronoiMapEditor : MonoBehaviour {
 		Ray inputRay = Camera.main.ScreenPointToRay (Input.mousePosition);
 		RaycastHit hit;
 		if (Physics.Raycast (inputRay, out hit)) {
-			VoronoiGrid.ColorCell (hit.point, _activeColor);
+			EditCell (VoronoiGrid.GetCell (hit.point));
 		}
+	}
+
+	private void EditCell (VoronoiCell cell) {
+		cell.Color = _activeColor;
+		cell.Elevation = _actiiveElevation;
+		VoronoiGrid.Refresh ();
 	}
 
 	public void SelectColor (int index) {
 		_activeColor = Colors[index];
+	}
+
+	public void SetElevation (float elevation) {
+		_actiiveElevation = (int)elevation;
 	}
 
 }

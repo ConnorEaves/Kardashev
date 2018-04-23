@@ -22,6 +22,9 @@ public class VoronoiGrid : MonoBehaviour {
 	
 	// Color
 	public Color DefaultColor;
+	
+	// Noise Soruce
+	public Texture2D NoiseSource;
 
 	// Cell Prefab
 	public VoronoiCell CellPrefab;
@@ -34,22 +37,30 @@ public class VoronoiGrid : MonoBehaviour {
 	
 	// Atmosphere
 	private SgtAtmosphere _atmosphere;
+	
+	// For play mode recompiles
+	private void OnEnable () {
+		VoronoiMetrics.NoiseSource = NoiseSource;
+	}
+
+	private void Awake () {
+		VoronoiMetrics.NoiseSource = NoiseSource;
+		
+		_voronoiMesh = GetComponentInChildren<VoronoiMesh> ();
+		_atmosphere = GetComponentInChildren<SgtAtmosphere> ();
+	}
 
 	private void Start () {
-		_voronoiMesh = GetComponentInChildren<VoronoiMesh> ();
-		
-		_atmosphere = GetComponentInChildren<SgtAtmosphere> ();
-		
 		StartCoroutine (Generate ());
 	}
 
-	public void ColorCell (Vector3 position, Color color) {
+	public VoronoiCell GetCell (Vector3 position) {
 		position = transform.InverseTransformPoint (position);
-		VoronoiCell cell = _cells
-			.OrderByDescending (x => Vector3.Dot (x.transform.localPosition.normalized, position.normalized))
-			.First();
-		cell.Color = color;
-		Debug.Log ("Touched: " + cell.name);
+		return _cells.OrderByDescending (x => Vector3.Dot (x.transform.localPosition.normalized, position.normalized))
+					 .First ();
+	}
+
+	public void Refresh () {
 		_voronoiMesh.Triangulate (_cells);
 	}
 
@@ -73,7 +84,7 @@ public class VoronoiGrid : MonoBehaviour {
 		_voronoiMesh.Triangulate (_cells);
 		
 		_atmosphere.InnerMeshRadius = Radius;
-		_atmosphere.Height = Radius * 0.025f;
+		_atmosphere.Height = VoronoiMetrics.ElevationStep * (10f + 1f);
 		_atmosphere.UpdateOuters ();
 		
 		Debug.Log ("Finished generating in " + (Time.time - startTime) + " seconds.");
@@ -239,6 +250,9 @@ public class VoronoiGrid : MonoBehaviour {
 				cell.Corners[i] = cell.Corners[i] + (originalPosition - cell.transform.localPosition);
 			}
 			cell.Corners.Add (cell.Corners[0]);
+			
+			cell.BaseElevation = cell.transform.localPosition.magnitude;
+			cell.Elevation = 0;
 		}
 
 		yield return null;
