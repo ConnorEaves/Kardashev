@@ -32,7 +32,6 @@ public class VoronoiGrid : MonoBehaviour {
 	// Mesh
 	private VoronoiMesh _voronoiMesh;
 	
-	
 	// Atmosphere
 	private SgtAtmosphere _atmosphere;
 
@@ -68,11 +67,7 @@ public class VoronoiGrid : MonoBehaviour {
 
 		yield return DestroyChildCells ();
 		yield return CreateCells ();
-
-		ConvexHull<VoronoiCell, DefaultConvexFace<VoronoiCell>> hull =
-			ConvexHull.Create<VoronoiCell, DefaultConvexFace<VoronoiCell>> (_cells);
-
-		yield return ConnectCells (hull);
+		yield return ConnectCells ();
 		yield return FinalizeCells ();
 		
 		_voronoiMesh.Triangulate (_cells);
@@ -91,7 +86,7 @@ public class VoronoiGrid : MonoBehaviour {
 		for (int i = transform.childCount - 1; i >= 0; --i) {
 			Transform child = transform.GetChild (i);
 			if (child != null && child.GetComponent<VoronoiCell> () != null) {
-				DestroyImmediate (child.gameObject);
+				Destroy (child.gameObject);
 			}
 		}
 		yield return null;
@@ -100,7 +95,7 @@ public class VoronoiGrid : MonoBehaviour {
 	/// <summary>
 	/// Create new cells.
 	/// </summary>
-	/// <returns>Coroutine</returns>
+	/// <returns></returns>
 	private IEnumerator CreateCells () {
 		_cells = new VoronoiCell[CellCount];
 		
@@ -169,9 +164,11 @@ public class VoronoiGrid : MonoBehaviour {
 	/// <summary>
 	/// Assign cell corners, neighbors, edge connections, and corner connections
 	/// </summary>
-	/// <param name="hull"></param>
 	/// <returns></returns>
-	private IEnumerator ConnectCells (ConvexHull<VoronoiCell, DefaultConvexFace<VoronoiCell>> hull) {
+	private IEnumerator ConnectCells () {
+		ConvexHull<VoronoiCell, DefaultConvexFace<VoronoiCell>> hull =
+			ConvexHull.Create<VoronoiCell, DefaultConvexFace<VoronoiCell>> (_cells);
+		
 		foreach (DefaultConvexFace<VoronoiCell> face in hull.Faces) {
 			VoronoiCell c0 = face.Vertices[0];
 			VoronoiCell c1 = face.Vertices[1];
@@ -195,6 +192,11 @@ public class VoronoiGrid : MonoBehaviour {
 	}
 
 
+	/// <summary>
+	/// Sorts and aligns neighbors and corners.
+	/// Flattens cell centers and adjusts corner vectors accordingly.
+	/// </summary>
+	/// <returns></returns>
 	private IEnumerator FinalizeCells () {
 		foreach (VoronoiCell cell in _cells) {
 			// Sort Corners
