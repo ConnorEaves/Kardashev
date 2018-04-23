@@ -43,17 +43,45 @@ public class VoronoiMesh : MonoBehaviour {
 	}
 
 	private void Triangulate (VoronoiCell cell) {
-		Vector3 center = cell.transform.localPosition;
-
-		for (int i = 0; i < cell.Corners.Count - 1; ++i) {
-			AddTriangle (
-				center,
-				center + cell.Corners[i],
-				center + cell.Corners[i + 1]);
-			AddTriangleColor (cell.Color);
+		for (VoronoiDirection d = 0; d < cell.Neighbors.Count; ++d) {
+			Triangulate (cell, d);
 		}
 	}
 
+	private void Triangulate (VoronoiCell cell, VoronoiDirection direction) {
+		Vector3 center = cell.transform.localPosition;
+		Vector3 v1 = center + VoronoiMetrics.GetFirstSolidCorner (cell, direction);
+		Vector3 v2 = center + VoronoiMetrics.GetSecondSolidCorner (cell, direction);
+		
+		AddTriangle (center, v1, v2);
+		AddTriangleColor (cell.Color);
+
+		if (cell.EdgeConnections.Contains (direction)) {
+			TriangulateConnection (cell, direction, v1, v2);
+		} 
+	}
+
+	private void TriangulateConnection (VoronoiCell cell, VoronoiDirection direction, Vector3 v1, Vector3 v2) {
+		VoronoiCell neighbor = cell.GetNeighbor (direction);
+		
+		Vector3 bridge = VoronoiMetrics.GetBridge (cell, direction);
+		Vector3 v3 = v1 + bridge;
+		Vector3 v4 = v2 + bridge;
+		
+		AddQuad (v1, v2, v3, v4);
+		AddQuadColor (cell.Color, neighbor.Color);
+
+		if (cell.CornerConnections.Contains (direction)) {
+			VoronoiCell nextNeighbor = cell.GetNeighbor (direction.Next (cell));
+			AddTriangle (v2, v4, v2 + VoronoiMetrics.GetBridge (cell, direction.Next (cell)));
+			AddTriangleColor (cell.Color, neighbor.Color, nextNeighbor.Color);
+		}
+		
+		
+	}
+
+	// Triangle creation
+	
 	private void AddTriangle (Vector3 v1, Vector3 v2, Vector3 v3) {
 		int vertexIndex = _vertices.Count;
 		_vertices.Add (v1);
@@ -69,5 +97,42 @@ public class VoronoiMesh : MonoBehaviour {
 		_colors.Add (color);
 		_colors.Add (color);
 		_colors.Add (color);
+	}
+	
+	private void AddTriangleColor (Color c1, Color c2, Color c3) {
+		_colors.Add (c1);
+		_colors.Add (c2);
+		_colors.Add (c3);
+	}
+
+	// Quad creation
+	
+	private void AddQuad (Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4) {
+		int vertexIndex = _vertices.Count;
+		_vertices.Add (v1);
+		_vertices.Add (v2);
+		_vertices.Add (v3);
+		_vertices.Add (v4);
+		
+		_triangles.Add (vertexIndex);
+		_triangles.Add (vertexIndex + 2);
+		_triangles.Add (vertexIndex + 1);
+		_triangles.Add (vertexIndex + 1);
+		_triangles.Add (vertexIndex + 2);
+		_triangles.Add (vertexIndex + 3);
+	}
+	
+	private void AddQuadColor (Color c1, Color c2) {
+		_colors.Add (c1);
+		_colors.Add (c1);
+		_colors.Add (c2);
+		_colors.Add (c2);
+	}
+	
+	private void AddQuadColor (Color c1, Color c2, Color c3, Color c4) {
+		_colors.Add (c1);
+		_colors.Add (c2);
+		_colors.Add (c3);
+		_colors.Add (c4);
 	}
 }

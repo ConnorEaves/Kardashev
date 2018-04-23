@@ -6,8 +6,8 @@ public class VoronoiCell : MonoBehaviour, IVertex {
 
 	public List<Vector3> Corners = new List<Vector3> ();
 	public List<VoronoiCell> Neighbors = new List<VoronoiCell> ();
-	public List<VoronoiCell> EdgeConnections = new List<VoronoiCell> ();
-	public List<Vector3> CornerConnections = new List<Vector3> ();
+	public List<VoronoiDirection> EdgeConnections = new List<VoronoiDirection> ();
+	public List<VoronoiDirection> CornerConnections = new List<VoronoiDirection> ();
 
 	public Color Color = Color.white;
 
@@ -25,16 +25,15 @@ public class VoronoiCell : MonoBehaviour, IVertex {
 	public void SetNeighbor (VoronoiCell neighbor) {
 		if (!Neighbors.Contains (neighbor)) {
 			Neighbors.Add (neighbor);
-			EdgeConnections.Add (neighbor);
 		}
 		if (!neighbor.Neighbors.Contains (this)) {
 			neighbor.Neighbors.Add (this);
 		}
 	}
-	
-	public void SetCornerConnection (Vector3 corner) {
-		if (!CornerConnections.Contains (corner)) {
-			CornerConnections.Add (corner);
-		}
+
+	public VoronoiCell GetNeighbor (VoronoiDirection direction) {
+		return Neighbors[direction];
 	}
+	
+	
 }

@@ -985,7 +985,7 @@ MonoBehaviour:
   StickMinZoom: -25
   StickMaxZoom: -1
   SwivelMinZoom: 90
-  SwivelMaxZoom: 25
+  SwivelMaxZoom: 45
   MoveSpeedMinZoom: 800
   MoveSpeedMaxZoom: 400
   RotationSpeed: 180

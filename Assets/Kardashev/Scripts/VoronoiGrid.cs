@@ -73,7 +73,7 @@ public class VoronoiGrid : MonoBehaviour {
 		_voronoiMesh.Triangulate (_cells);
 		
 		_atmosphere.InnerMeshRadius = Radius;
-		_atmosphere.Height = Radius * 0.1f;
+		_atmosphere.Height = Radius * 0.025f;
 		_atmosphere.UpdateOuters ();
 		
 		Debug.Log ("Finished generating in " + (Time.time - startTime) + " seconds.");
@@ -185,8 +185,6 @@ public class VoronoiGrid : MonoBehaviour {
 			c0.SetNeighbor (c1);
 			c0.SetNeighbor (c2);
 			c1.SetNeighbor (c2);
-
-			c0.SetCornerConnection (centroid - c0.transform.position);
 		}
 		yield return null;
 	}
@@ -198,6 +196,7 @@ public class VoronoiGrid : MonoBehaviour {
 	/// </summary>
 	/// <returns></returns>
 	private IEnumerator FinalizeCells () {
+		List<VoronoiCell> processed = new List<VoronoiCell> ();
 		foreach (VoronoiCell cell in _cells) {
 			// Sort Corners
 			cell.Corners = cell.Corners
@@ -215,6 +214,18 @@ public class VoronoiGrid : MonoBehaviour {
 				cell.Neighbors.Rotate (1);
 			}
 
+			for (VoronoiDirection d = 0; d < cell.Neighbors.Count; ++d) {
+				if (!processed.Contains (cell.GetNeighbor (d))) {
+					cell.EdgeConnections.Add (d);
+					
+					if (!processed.Contains (cell.GetNeighbor (d.Next (cell)))) {
+						cell.CornerConnections.Add (d);
+					}
+				}
+			}
+
+			processed.Add (cell);
+
 			// Flatten cell
 			Vector3 originalPosition = cell.transform.localPosition;
 			Vector3 center = Vector3.zero;
@@ -228,10 +239,6 @@ public class VoronoiGrid : MonoBehaviour {
 				cell.Corners[i] = cell.Corners[i] + (originalPosition - cell.transform.localPosition);
 			}
 			cell.Corners.Add (cell.Corners[0]);
-			
-			for (int i = 0; i < cell.CornerConnections.Count; ++i) {
-				cell.CornerConnections[i] = cell.CornerConnections[i] + (originalPosition - cell.transform.localPosition);
-			}
 		}
 
 		yield return null;

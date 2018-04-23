@@ -919,6 +919,7 @@
               <e p="Vector3.cs" t="Include" />
             </e>
             <e p="VoronoiCell.cs" t="Include" />
+            <e p="VoronoiDirection.cs" t="Include" />
             <e p="VoronoiGrid.cs" t="Include" />
             <e p="VoronoiMapCamera.cs" t="Include" />
             <e p="VoronoiMapEditor.cs" t="Include" />
