@@ -51,11 +51,167 @@ public class VoronoiMesh : MonoBehaviour {
 			center + VoronoiMetrics.GetSecondSolidCorner (cell, direction)
 		);
 
-		TriangulateEdgeFan (center, e, cell.Color);
+		if (cell.HasRiver) {
+			if (cell.HasRiverThroughEdge (direction)) {
+				e.V3 = Vector3.ClampMagnitude (e.V3, cell.StreamBedElevation);
+				if (cell.HasRiverBeginOrEnd) {
+					TriangulateWithRiverBeginOrEnd (cell, direction, center, e);
+				} else {
+					TriangulateWithRiver (cell, direction, center, e);
+				}
+			} else {
+				TriangulateAdjacentToRiver (cell, direction, center, e);
+			}
+		} else {
+			TriangulateEdgeFan (center, e, cell.Color);
+		}
 
 		if (cell.EdgeConnections.Contains (direction)) {
 			TriangulateConnection (cell, direction, e);
 		} 
+	}
+
+	private void TriangulateAdjacentToRiver (VoronoiCell cell, VoronoiDirection direction, Vector3 center, EdgeVertices e) {
+
+		// Inside two step turn
+		if (cell.HasRiverThroughEdge (direction.Next (cell)) &&
+		    cell.HasRiverThroughEdge (direction.Previous (cell))) {
+			center += VoronoiMetrics.GetSolidEdgeMiddle (cell, direction) *
+			          (0.5f * VoronoiMetrics.InnerToOuter (cell, direction));
+			
+			// 6 sided adjacencies
+		} else if (cell.Neighbors.Count == 6) {
+			if (cell.HasRiverThroughEdge (direction.Next (cell)) &&
+			    cell.HasRiverThroughEdge (direction.Previous2 (cell))) {
+				center += VoronoiMetrics.GetFirstSolidCorner (cell, direction) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Previous (cell)) &&
+			           cell.HasRiverThroughEdge (direction.Next2 (cell))) {
+				center += VoronoiMetrics.GetSecondSolidCorner (cell, direction) * 0.25f;
+			}
+			
+			// 7 sided adjacencies
+		} else if (cell.Neighbors.Count == 7) {
+			if (cell.HasRiverThroughEdge (direction.Next (cell)) &&
+			    cell.HasRiverThroughEdge (direction.Previous2 (cell))) {
+				center += VoronoiMetrics.GetFirstSolidCorner (cell, direction) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Previous (cell)) &&
+			           cell.HasRiverThroughEdge (direction.Next2 (cell))) {
+				center += VoronoiMetrics.GetSecondSolidCorner (cell, direction) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Next2 (cell)) &&
+			           cell.HasRiverThroughEdge (direction.Previous2 (cell))) {
+				center += VoronoiMetrics.GetSolidEdgeMiddle (cell, direction) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Next (cell)) &&
+			          cell.HasRiverThroughEdge (direction.Previous3 (cell))) {
+				center += VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Previous (cell)) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Next3 (cell)) &&
+			          cell.HasRiverThroughEdge (direction.Previous (cell))) {
+				center += VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Next (cell)) * 0.25f;
+				
+			}
+		}
+		
+		EdgeVertices m = new EdgeVertices (
+			Vector3.Lerp (center, e.V1, 0.5f),
+			Vector3.Lerp (center, e.V5, 0.5f)
+		);
+		
+		TriangulateEdgeStrip (m, cell.Color, e, cell.Color);
+		TriangulateEdgeFan (center, m, cell.Color);
+	}
+
+	private void TriangulateWithRiverBeginOrEnd (VoronoiCell cell, VoronoiDirection direction, Vector3 center, EdgeVertices e) {
+		EdgeVertices m = new EdgeVertices (
+			Vector3.Lerp (center, e.V1, 0.5f),
+			Vector3.Lerp (center, e.V5, 0.5f)
+		);
+		
+		m.V3 = Vector3.ClampMagnitude (m.V3, cell.StreamBedElevation);
+
+		TriangulateEdgeStrip (m, cell.Color, e, cell.Color);
+		TriangulateEdgeFan (center, m, cell.Color);
+	}
+
+	private void TriangulateWithRiver (VoronoiCell cell, VoronoiDirection direction, Vector3 center, EdgeVertices e) {
+		Vector3 centerL, centerR;
+		centerL = centerR = center;
+
+		// 4 sided straight
+		if (cell.HasRiverThroughEdge (direction.Next2 (cell)) && cell.HasRiverThroughEdge (direction.Previous2 (cell))) {
+			centerL = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Previous (cell)) * 
+			          (0.5f * VoronoiMetrics.InnerToOuter (cell, direction.Previous (cell)));
+			centerR = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Next (cell)) * 
+			          (0.5f * VoronoiMetrics.InnerToOuter (cell, direction.Next (cell)));
+			
+			// One step turn
+		} else if (cell.HasRiverThroughEdge (direction.Next (cell))) {
+			centerL = center;
+			centerR = Vector3.Lerp (center, e.V5, 2 / 3f);
+			
+			// One step turn
+		} else if (cell.HasRiverThroughEdge (direction.Previous (cell))) {
+			centerL = Vector3.Lerp (center, e.V1, 2 / 3f);
+			centerR = center;
+			
+			// Two step turn
+		} else if (cell.HasRiverThroughEdge (direction.Next2 (cell))) {
+			centerL = center;
+			centerR = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Next (cell)) * 
+			          (0.5f * VoronoiMetrics.InnerToOuter (cell, direction.Next (cell)));
+			
+			// Two step turn
+		} else if (cell.HasRiverThroughEdge (direction.Previous2 (cell))) {
+			centerL = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Previous (cell)) * 
+			          (0.5f * VoronoiMetrics.InnerToOuter (cell, direction.Previous (cell)));
+			centerR = center;
+
+			// 6 sided straight
+		} else if (cell.HasRiverThroughEdge (direction.Next3 (cell)) &&
+		           cell.HasRiverThroughEdge (direction.Previous3 (cell))) {
+			centerL = center + VoronoiMetrics.GetFirstSolidCorner (cell, direction.Previous (cell)) * 0.25f;
+			centerR = center + VoronoiMetrics.GetSecondSolidCorner (cell, direction.Next (cell)) * 0.25f;
+
+			// 7 sided straight
+		} else if (cell.HasRiverThroughEdge (direction.Previous3 (cell)) &&
+		           cell.HasRiverThroughEdge (direction.Next4 (cell)) &&
+		           cell.Neighbors.Count > 4) {
+			centerL = center + VoronoiMetrics.GetFirstSolidCorner (cell, direction.Previous (cell)) * 0.25f;
+			centerR = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Next2 (cell)) * 0.25f;
+			
+			// 7 sided straight
+		} else if (cell.HasRiverThroughEdge (direction.Previous4 (cell)) &&
+		           cell.HasRiverThroughEdge (direction.Next3 (cell)) &&
+		           cell.Neighbors.Count > 4) {
+			centerR = center + VoronoiMetrics.GetSecondSolidCorner (cell, direction.Next (cell)) * 0.25f;
+			centerL = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Previous2 (cell)) * 0.25f;
+		}
+
+		center = Vector3.Lerp (centerL, centerR, 0.5f);
+		
+
+		EdgeVertices m = new EdgeVertices (
+			Vector3.Lerp (centerL, e.V1, 0.5f),
+			Vector3.Lerp (centerR, e.V5, 0.5f),
+			1 / 6f
+		);
+
+		m.V3 = Vector3.ClampMagnitude (m.V3, cell.StreamBedElevation);
+		center = Vector3.ClampMagnitude (center, cell.StreamBedElevation);
+		
+		TriangulateEdgeStrip (m, cell.Color, e, cell.Color);
+		AddTriangle (centerL, m.V1, m.V2);
+		AddTriangleColor (cell.Color);
+		AddQuad (centerL, center, m.V2, m.V3);
+		AddQuadColor (cell.Color);
+		AddQuad (center, centerR, m.V3, m.V4);
+		AddQuadColor (cell.Color);
+		AddTriangle (centerR, m.V4, m.V5);
+		AddTriangleColor (cell.Color);
+
 	}
 
 	private void TriangulateEdgeFan (Vector3 center, EdgeVertices edge, Color color) {
@@ -64,6 +220,8 @@ public class VoronoiMesh : MonoBehaviour {
 		AddTriangle (center, edge.V2, edge.V3);
 		AddTriangleColor (color);
 		AddTriangle (center, edge.V3, edge.V4);
+		AddTriangleColor (color);
+		AddTriangle (center, edge.V4, edge.V5);
 		AddTriangleColor (color);
 	}
 
@@ -74,6 +232,8 @@ public class VoronoiMesh : MonoBehaviour {
 		AddQuadColor (c1, c2);
 		AddQuad (e1.V3, e1.V4, e2.V3, e2.V4);
 		AddQuadColor (c1, c2);
+		AddQuad (e1.V4, e1.V5, e2.V4, e2.V5);
+		AddQuadColor (c1, c2);
 	}
 
 	private void TriangulateConnection (VoronoiCell cell, VoronoiDirection direction, EdgeVertices e1) {
@@ -83,8 +243,12 @@ public class VoronoiMesh : MonoBehaviour {
 		
 		EdgeVertices e2 = new EdgeVertices(
 			e1.V1 + bridge,
-			e1.V4 + bridge
+			e1.V5 + bridge
 		);
+
+		if (cell.HasRiverThroughEdge (direction)) {
+			e2.V3 = Vector3.ClampMagnitude (e2.V3, neighbor.StreamBedElevation);
+		}
 
 		if (cell.GetEdgeType (direction) == VoronoiEdgeType.Slope) {
 			TriangulateEdgeTerraces (e1, cell, e2, neighbor);
@@ -94,18 +258,18 @@ public class VoronoiMesh : MonoBehaviour {
 		
 		VoronoiCell nextNeighbor = cell.GetNeighbor (direction.Next (cell));
 		if (cell.CornerConnections.Contains (direction)) {
-			Vector3 v5 = e1.V4 + VoronoiMetrics.GetBridge (cell, direction.Next (cell));
+			Vector3 v5 = e1.V5 + VoronoiMetrics.GetBridge (cell, direction.Next (cell));
 
 			if (cell.Elevation <= neighbor.Elevation) {
 				if (cell.Elevation <= nextNeighbor.Elevation) {
-					TriangulateCorner (e1.V4, cell, e2.V4, neighbor, v5, nextNeighbor);
+					TriangulateCorner (e1.V5, cell, e2.V5, neighbor, v5, nextNeighbor);
 				} else {
-					TriangulateCorner (v5, nextNeighbor, e1.V4, cell, e2.V4, neighbor);
+					TriangulateCorner (v5, nextNeighbor, e1.V5, cell, e2.V5, neighbor);
 				}
 			} else if (neighbor.Elevation <= nextNeighbor.Elevation) {
-				TriangulateCorner (e2.V4, neighbor, v5, nextNeighbor, e1.V4, cell);
+				TriangulateCorner (e2.V5, neighbor, v5, nextNeighbor, e1.V5, cell);
 			} else {
-				TriangulateCorner (v5, nextNeighbor, e1.V4, cell, e2.V4, neighbor);
+				TriangulateCorner (v5, nextNeighbor, e1.V5, cell, e2.V5, neighbor);
 			}
 		}
 	}
@@ -320,6 +484,13 @@ public class VoronoiMesh : MonoBehaviour {
 		_triangles.Add (vertexIndex + 1);
 		_triangles.Add (vertexIndex + 2);
 		_triangles.Add (vertexIndex + 3);
+	}
+	
+	private void AddQuadColor (Color color) {
+		_colors.Add (color);
+		_colors.Add (color);
+		_colors.Add (color);
+		_colors.Add (color);
 	}
 	
 	private void AddQuadColor (Color c1, Color c2) {

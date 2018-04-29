@@ -53,7 +53,7 @@ public class VoronoiGrid : MonoBehaviour {
 	}
 
 	public VoronoiCell GetCell (Vector3 position) {
-		position = transform.InverseTransformPoint (position);
+		position -= transform.position;
 		return _cells.OrderByDescending (x => Vector3.Dot (x.transform.localPosition.normalized, position.normalized))
 					 .First ();
 	}

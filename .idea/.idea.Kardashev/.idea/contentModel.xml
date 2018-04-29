@@ -920,6 +920,9 @@
               <e p="Vector3.cs" t="Include" />
             </e>
             <e p="VoronoiCell.cs" t="Include" />
+            <e p="VoronoiCell_Color.cs" t="Include" />
+            <e p="VoronoiCell_Elevation.cs" t="Include" />
+            <e p="VoronoiCell_River.cs" t="Include" />
             <e p="VoronoiDirection.cs" t="Include" />
             <e p="VoronoiEdgeType.cs" t="Include" />
             <e p="VoronoiGrid.cs" t="Include" />

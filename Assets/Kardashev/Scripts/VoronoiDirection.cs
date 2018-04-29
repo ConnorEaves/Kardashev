@@ -1,4 +1,7 @@
-﻿[System.Serializable]
+﻿using UnityEngine;
+using UnityEngine.UI;
+
+[System.Serializable]
 public class VoronoiDirection {
 
 	private int _direction;
@@ -16,6 +19,21 @@ public class VoronoiDirection {
 		VoronoiDirection item = (VoronoiDirection) obj;
 		return item != null && _direction.Equals (item._direction);
 	}
+
+	public override int GetHashCode () {
+		return 0;
+	}
+	
+	public static bool operator == (VoronoiDirection a, VoronoiDirection b) {
+		if (ReferenceEquals (a, null)) {
+			return ReferenceEquals (b, null);
+		}
+		return a.Equals (b);
+	}
+
+	public static bool operator != (VoronoiDirection a, VoronoiDirection b) {
+		return !(a == b);
+	}
 }
 
 public static class VoronoiDirectionExtension {
@@ -30,10 +48,34 @@ public static class VoronoiDirectionExtension {
 	}
 	
 	public static VoronoiDirection Previous (this VoronoiDirection direction, VoronoiCell cell) {
-		return direction == 0 ? cell.Neighbors.Count - 1 : direction - 1;
+		return (VoronoiDirection) Mathf.Repeat (direction - 1, cell.Neighbors.Count);
+	}
+	
+	public static VoronoiDirection Previous2 (this VoronoiDirection direction, VoronoiCell cell) {
+		return (VoronoiDirection) Mathf.Repeat (direction - 2, cell.Neighbors.Count);
+	}
+	
+	public static VoronoiDirection Previous3 (this VoronoiDirection direction, VoronoiCell cell) {
+		return (VoronoiDirection) Mathf.Repeat (direction - 3, cell.Neighbors.Count);
+	}
+	
+	public static VoronoiDirection Previous4 (this VoronoiDirection direction, VoronoiCell cell) {
+		return (VoronoiDirection) Mathf.Repeat (direction - 4, cell.Neighbors.Count);
 	}
 
 	public static VoronoiDirection Next (this VoronoiDirection direction, VoronoiCell cell) {
-		return direction == cell.Neighbors.Count - 1 ? 0 : direction + 1;
+		return (VoronoiDirection) Mathf.Repeat (direction + 1, cell.Neighbors.Count);
+	}
+	
+	public static VoronoiDirection Next2 (this VoronoiDirection direction, VoronoiCell cell) {
+		return (VoronoiDirection) Mathf.Repeat (direction + 2, cell.Neighbors.Count);
+	}
+	
+	public static VoronoiDirection Next3 (this VoronoiDirection direction, VoronoiCell cell) {
+		return (VoronoiDirection) Mathf.Repeat (direction + 3, cell.Neighbors.Count);
+	}
+	
+	public static VoronoiDirection Next4 (this VoronoiDirection direction, VoronoiCell cell) {
+		return (VoronoiDirection) Mathf.Repeat (direction + 4, cell.Neighbors.Count);
 	}
 }

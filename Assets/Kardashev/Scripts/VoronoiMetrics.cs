@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public static class VoronoiMetrics {
+	
+	public const int ChunkSize = 25;
+	
 	public const float SolidFactor = 0.8f;
 	public const float BlendFactor = 1f - SolidFactor;
 
@@ -18,7 +21,23 @@ public static class VoronoiMetrics {
 	public const float CellPerturbStrength = 0.2f;
 	public const float ElevationPerturbSrength = 0.05f;
 
-	public const int ChunkSize = 25;
+	public const float StreamBedElevationOffset = -1f;
+	
+	public static float OuterRadius (VoronoiCell cell, VoronoiDirection direction) {
+		return (cell.Corners[direction].magnitude + cell.Corners[direction + 1].magnitude) * 0.5f;
+	}
+
+	public static float InnerRadius (VoronoiCell cell, VoronoiDirection direction) {
+		return Vector3.Lerp (cell.Corners[direction], cell.Corners[direction + 1], 0.5f).magnitude;
+	}
+
+	public static float OuterToInner (VoronoiCell cell, VoronoiDirection direction) {
+		return InnerRadius (cell, direction) / OuterRadius (cell, direction);
+	}
+
+	public static float InnerToOuter (VoronoiCell cell, VoronoiDirection direction) {
+		return 1f / OuterToInner (cell, direction);
+	}
 	
 	public static Vector3 GetFirstCorner (VoronoiCell cell, VoronoiDirection direction) {
 		return cell.Corners[direction];
@@ -90,5 +109,9 @@ public static class VoronoiMetrics {
 		Vector4 z = NoiseSource.GetPixelBilinear (position.x * NoiseScale, position.y * NoiseScale);
 		
 		return (x * blendWeights.x) + (y * blendWeights.y) + (z * blendWeights.z);
+	}
+
+	public static Vector3 GetSolidEdgeMiddle (VoronoiCell cell, VoronoiDirection direction) {
+		return (cell.Corners[direction] + cell.Corners[direction + 1]) * (0.5f * SolidFactor);
 	}
 }
