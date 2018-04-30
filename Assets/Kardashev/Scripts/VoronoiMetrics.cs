@@ -21,7 +21,8 @@ public static class VoronoiMetrics {
 	public const float CellPerturbStrength = 0.2f;
 	public const float ElevationPerturbSrength = 0.05f;
 
-	public const float StreamBedElevationOffset = -1f;
+	public const float StreamBedElevationOffset = -1.75f;
+	public const float RiverSurfaceElevationOffset = -0.5f;
 	
 	public static float OuterRadius (VoronoiCell cell, VoronoiDirection direction) {
 		return (cell.Corners[direction].magnitude + cell.Corners[direction + 1].magnitude) * 0.5f;
@@ -113,5 +114,16 @@ public static class VoronoiMetrics {
 
 	public static Vector3 GetSolidEdgeMiddle (VoronoiCell cell, VoronoiDirection direction) {
 		return (cell.Corners[direction] + cell.Corners[direction + 1]) * (0.5f * SolidFactor);
+	}
+	
+	public static Vector3 Perturb (Vector3 position) {
+		Vector4 sample = SampleNoise (position);
+		
+		Vector3 perturbedPosition = position;
+		perturbedPosition.x += (sample.x * 2f - 1) * CellPerturbStrength;
+		perturbedPosition.y += (sample.y * 2f - 1) * CellPerturbStrength;
+		perturbedPosition.z += (sample.z * 2f - 1) * CellPerturbStrength;
+
+		return perturbedPosition.normalized * position.magnitude;
 	}
 }

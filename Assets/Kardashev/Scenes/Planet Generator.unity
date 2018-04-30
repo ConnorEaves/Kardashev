@@ -4300,6 +4300,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26d87db93f6774444aba4ae7bb21fe80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  UseCollider: 0
+  UseUV: 0
+  UseColors: 0
 --- !u!4 &1070037269
 Transform:
   m_ObjectHideFlags: 0
@@ -6439,9 +6442,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Seed: 345
   UseRandomSeed: 0
-  Radius: 10
+  Radius: 20
   CellSize: 1
-  CellCount: 1257
+  CellCount: 5027
   OverrideCellCount: 0
   RelaxationShader: {fileID: 7200000, guid: 5cf4cc9b5dc42404bb9f9f70619d19b0, type: 3}
   RelaxationSteps: 100
@@ -6449,7 +6452,7 @@ MonoBehaviour:
   NoiseSource: {fileID: 2800000, guid: c25d4bd91552e1b488c1a68c58db62d1, type: 3}
   CellPrefab: {fileID: 114614267011983822, guid: c93ac52155042aa45b035926d6898dab,
     type: 2}
-  ChunkPrefab: {fileID: 114407282780691872, guid: 8efd41e41a5c70e45ac1e155b68ffbe4,
+  ChunkPrefab: {fileID: 114340892593259512, guid: 8efd41e41a5c70e45ac1e155b68ffbe4,
     type: 2}
 --- !u!4 &1650472287
 Transform:

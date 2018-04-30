@@ -919,6 +919,7 @@
               <e p="List.cs" t="Include" />
               <e p="Vector3.cs" t="Include" />
             </e>
+            <e p="ListPool.cs" t="Include" />
             <e p="VoronoiCell.cs" t="Include" />
             <e p="VoronoiCell_Color.cs" t="Include" />
             <e p="VoronoiCell_Elevation.cs" t="Include" />
@@ -933,6 +934,7 @@
             <e p="VoronoiMetrics.cs" t="Include" />
           </e>
           <e p="Shaders" t="Include">
+            <e p="River.shader" t="Include" />
             <e p="Vertex Colors.shader" t="Include" />
           </e>
         </e>

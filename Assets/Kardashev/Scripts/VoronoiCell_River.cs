@@ -40,6 +40,10 @@ public partial class VoronoiCell {
 		get { return BaseElevation + (_elevation + VoronoiMetrics.StreamBedElevationOffset) * VoronoiMetrics.ElevationStep; }
 	}
 
+	public float RiverSurfaceElevation {
+		get { return BaseElevation + (_elevation + VoronoiMetrics.RiverSurfaceElevationOffset) * VoronoiMetrics.ElevationStep; }
+	}
+
 	public void SetOutgoingRiver (VoronoiDirection direction) {
 		if (_hasOutgoingRiver && _outgoingRiver == direction) {
 			return;
