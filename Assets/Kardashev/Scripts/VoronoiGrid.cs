@@ -256,9 +256,34 @@ public class VoronoiGrid : MonoBehaviour {
 				cell.Corners[i] = cell.Corners[i] + (originalPosition - cell.transform.localPosition);
 			}
 			cell.Corners.Add (cell.Corners[0]);
-			
-			cell.BaseElevation = cell.transform.localPosition.magnitude;
+
+			cell.BaseElevation = Radius;
+			//cell.BaseElevation = cell.transform.localPosition.magnitude;
 			cell.Elevation = 0;
+
+			switch (cell.Neighbors.Count) {
+				case 3:
+					cell.Color = Color.yellow;
+					break;
+				case 4:
+					cell.Color = Color.blue;
+					break;
+				case 5:
+					cell.Color = Color.green;
+					break;
+				case 7:
+					cell.Color = Color.red;
+					break;
+				case 8:
+					cell.Color = Color.magenta;
+					break;
+				case 9:
+					cell.Color = Color.black;
+					break;
+				default:
+					cell.Color = Color.white;
+					break;
+			}
 		}
 
 		yield return null;

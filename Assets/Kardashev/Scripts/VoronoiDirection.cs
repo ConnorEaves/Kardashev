@@ -62,6 +62,10 @@ public static class VoronoiDirectionExtension {
 	public static VoronoiDirection Previous4 (this VoronoiDirection direction, VoronoiCell cell) {
 		return (VoronoiDirection) Mathf.Repeat (direction - 4, cell.Neighbors.Count);
 	}
+	
+	public static VoronoiDirection Previous5 (this VoronoiDirection direction, VoronoiCell cell) {
+		return (VoronoiDirection) Mathf.Repeat (direction - 5, cell.Neighbors.Count);
+	}
 
 	public static VoronoiDirection Next (this VoronoiDirection direction, VoronoiCell cell) {
 		return (VoronoiDirection) Mathf.Repeat (direction + 1, cell.Neighbors.Count);
@@ -77,5 +81,9 @@ public static class VoronoiDirectionExtension {
 	
 	public static VoronoiDirection Next4 (this VoronoiDirection direction, VoronoiCell cell) {
 		return (VoronoiDirection) Mathf.Repeat (direction + 4, cell.Neighbors.Count);
+	}
+	
+	public static VoronoiDirection Next5 (this VoronoiDirection direction, VoronoiCell cell) {
+		return (VoronoiDirection) Mathf.Repeat (direction + 5, cell.Neighbors.Count);
 	}
 }

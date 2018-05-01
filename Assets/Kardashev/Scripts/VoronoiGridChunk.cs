@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class VoronoiGridChunk : MonoBehaviour {
@@ -7,15 +8,12 @@ public class VoronoiGridChunk : MonoBehaviour {
 	private List<VoronoiCell> _cells;
 	private Queue<VoronoiCell> _cellQueue;
 
-	private Color _color;
-
 	public VoronoiMesh Terrain;
 	public VoronoiMesh Rivers;
 
 	private void Awake () {
 		_cells = new List<VoronoiCell> ();
 		_cellQueue = new Queue<VoronoiCell> ();
-		_color = Random.ColorHSV ();
 	}
 
 	public void AddCell (VoronoiCell cell) {
@@ -23,7 +21,6 @@ public class VoronoiGridChunk : MonoBehaviour {
 		_cellQueue.Enqueue (cell);
 		cell.Chunk = this;
 		cell.transform.SetParent (transform, false);
-		cell.Color = _color;
 	}
 	
 	public bool ExtendChunk () {
@@ -106,8 +103,13 @@ public class VoronoiGridChunk : MonoBehaviour {
 		// Inside two step turn
 		if (cell.HasRiverThroughEdge (direction.Next (cell)) &&
 		    cell.HasRiverThroughEdge (direction.Previous (cell))) {
-			center += VoronoiMetrics.GetSolidEdgeMiddle (cell, direction) *
-			          (0.5f * VoronoiMetrics.InnerToOuter (cell, direction));
+			if (cell.Neighbors.Count == 4) {
+				center += VoronoiMetrics.GetSolidEdgeMiddle (cell, direction) * 
+				          (0.25f * VoronoiMetrics.InnerToOuter (cell, direction));
+			} else {
+				center += VoronoiMetrics.GetSolidEdgeMiddle (cell, direction) *
+				          (0.5f * VoronoiMetrics.InnerToOuter (cell, direction));
+			}
 			
 			// 6 sided adjacencies
 		} else if (cell.Neighbors.Count == 6) {
@@ -141,6 +143,44 @@ public class VoronoiGridChunk : MonoBehaviour {
 			} else if (cell.HasRiverThroughEdge (direction.Next3 (cell)) &&
 			          cell.HasRiverThroughEdge (direction.Previous (cell))) {
 				center += VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Next (cell)) * 0.25f;
+				
+			}
+		} else if (cell.Neighbors.Count == 8) {
+			if (cell.HasRiverThroughEdge (direction.Next (cell)) &&
+			    cell.HasRiverThroughEdge (direction.Previous3 (cell))) {
+				center += VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Previous (cell)) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Next2 (cell)) &&
+			           cell.HasRiverThroughEdge (direction.Previous2 (cell))) {
+				center += VoronoiMetrics.GetSolidEdgeMiddle (cell, direction) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Next3 (cell)) &&
+			           cell.HasRiverThroughEdge (direction.Previous (cell))) {
+				center += VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Next (cell)) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Previous (cell)) &&
+			           cell.HasRiverThroughEdge (direction.Next4 (cell))) {
+				center += VoronoiMetrics.GetSecondSolidCorner (cell, direction.Next (cell)) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Previous2 (cell)) &&
+				           cell.HasRiverThroughEdge (direction.Next3 (cell))) {
+				center += VoronoiMetrics.GetSecondSolidCorner (cell, direction) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Previous3 (cell)) &&
+			           cell.HasRiverThroughEdge (direction.Next2 (cell))) {
+				center += VoronoiMetrics.GetFirstSolidCorner (cell, direction) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Previous4 (cell)) &&
+			          cell.HasRiverThroughEdge (direction.Next (cell))) {
+				center += VoronoiMetrics.GetFirstSolidCorner (cell, direction.Previous (cell)) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Previous (cell)) &&
+			           cell.HasRiverThroughEdge (direction.Next2 (cell))) {
+				center += VoronoiMetrics.GetSecondSolidCorner (cell, direction) * 0.25f;
+				
+			} else if (cell.HasRiverThroughEdge (direction.Previous2 (cell)) &&
+			          cell.HasRiverThroughEdge (direction.Next (cell))) {
+				center += VoronoiMetrics.GetFirstSolidCorner (cell, direction) * 0.25f;
 				
 			}
 		}
@@ -187,27 +227,27 @@ public class VoronoiGridChunk : MonoBehaviour {
 		// 4 sided straight
 		if (cell.HasRiverThroughEdge (direction.Next2 (cell)) && cell.HasRiverThroughEdge (direction.Previous2 (cell))) {
 			centerL = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Previous (cell)) * 
-			          (0.5f * VoronoiMetrics.InnerToOuter (cell, direction.Previous (cell)));
+			          (0.25f * VoronoiMetrics.InnerToOuter (cell, direction.Previous (cell)));
 			centerR = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Next (cell)) * 
-			          (0.5f * VoronoiMetrics.InnerToOuter (cell, direction.Next (cell)));
+			          (0.25f * VoronoiMetrics.InnerToOuter (cell, direction.Next (cell)));
 			
-			// One step turn
+			// 1 step turn
 		} else if (cell.HasRiverThroughEdge (direction.Next (cell))) {
 			centerL = center;
 			centerR = Vector3.Lerp (center, e.V5, 2 / 3f);
 			
-			// One step turn
+			// 1 step turn
 		} else if (cell.HasRiverThroughEdge (direction.Previous (cell))) {
 			centerL = Vector3.Lerp (center, e.V1, 2 / 3f);
 			centerR = center;
 			
-			// Two step turn
+			// 2 step turn
 		} else if (cell.HasRiverThroughEdge (direction.Next2 (cell))) {
 			centerL = center;
 			centerR = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Next (cell)) * 
 			          (0.5f * VoronoiMetrics.InnerToOuter (cell, direction.Next (cell)));
 			
-			// Two step turn
+			// 2 step turn
 		} else if (cell.HasRiverThroughEdge (direction.Previous2 (cell))) {
 			centerL = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Previous (cell)) * 
 			          (0.5f * VoronoiMetrics.InnerToOuter (cell, direction.Previous (cell)));
@@ -230,8 +270,29 @@ public class VoronoiGridChunk : MonoBehaviour {
 		} else if (cell.HasRiverThroughEdge (direction.Previous4 (cell)) &&
 		           cell.HasRiverThroughEdge (direction.Next3 (cell)) &&
 		           cell.Neighbors.Count > 4) {
-			centerR = center + VoronoiMetrics.GetSecondSolidCorner (cell, direction.Next (cell)) * 0.25f;
 			centerL = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Previous2 (cell)) * 0.25f;
+			centerR = center + VoronoiMetrics.GetSecondSolidCorner (cell, direction.Next (cell)) * 0.25f;
+			
+			// 8 sided straight
+		} else if (cell.HasRiverThroughEdge (direction.Previous4 (cell)) &&
+		           cell.HasRiverThroughEdge (direction.Next4 (cell)) &&
+		           cell.Neighbors.Count > 4) {
+			centerL = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Previous2 (cell)) * 0.25f;
+			centerR = center + VoronoiMetrics.GetSolidEdgeMiddle (cell, direction.Next2 (cell)) * 0.25f;
+
+			// 3 step turn
+		} else if (cell.HasRiverThroughEdge (direction.Previous3 (cell)) && 
+		           cell.HasRiverThroughEdge (direction.Next5 (cell)) &&
+		           cell.Neighbors.Count > 5) {
+			centerR = center + VoronoiMetrics.GetSecondSolidCorner (cell, direction.Next2 (cell)) * 0.25f;
+			centerL = center + VoronoiMetrics.GetFirstSolidCorner (cell, direction.Previous (cell)) * 0.25f;
+
+			// 3 step turn
+		} else if (cell.HasRiverThroughEdge (direction.Previous5 (cell)) && 
+		           cell.HasRiverThroughEdge (direction.Next3 (cell)) &&
+		           cell.Neighbors.Count > 5) {
+			centerL = center + VoronoiMetrics.GetFirstSolidCorner (cell, direction.Previous2 (cell)) * 0.25f;
+			centerR = center + VoronoiMetrics.GetSecondSolidCorner (cell, direction.Next (cell)) * 0.25f;
 		}
 
 		center = Vector3.Lerp (centerL, centerR, 0.5f);
