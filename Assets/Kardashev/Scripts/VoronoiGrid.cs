@@ -261,6 +261,8 @@ public class VoronoiGrid : MonoBehaviour {
 			//cell.BaseElevation = cell.transform.localPosition.magnitude;
 			cell.Elevation = 0;
 
+			cell.Roads = new bool[cell.Neighbors.Count].ToList ();
+
 			switch (cell.Neighbors.Count) {
 				case 3:
 					cell.Color = Color.yellow;

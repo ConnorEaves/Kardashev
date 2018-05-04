@@ -61,12 +61,12 @@ public partial class VoronoiCell {
 
 		_hasOutgoingRiver = true;
 		_outgoingRiver = direction;
-		RefreshSelfOnly ();
 		
 		neighbor.RemoveIncomingRiver ();
 		neighbor._hasIncomingRiver = true;
 		neighbor._incomingRiver = direction.Opposite (this);
-		neighbor.RefreshSelfOnly ();
+		
+		SetRoad (direction, false);
 	}
 	
 	public void RemoveRiver () {

@@ -23,7 +23,7 @@ public class VoronoiMapEditor : MonoBehaviour {
 
 	private int _brushSize;
 
-	private OptionalToggle _riverMode;
+	private OptionalToggle _riverMode, _roadMode;
 	
 	void Awake () {
 		SelectColor (-1);
@@ -113,9 +113,17 @@ public class VoronoiMapEditor : MonoBehaviour {
 			cell.RemoveRiver ();
 		}
 
+		if (_roadMode == OptionalToggle.No) {
+			cell.RemoveRoads ();
+		}
+
 		if (_isDrag) {
 			if (_riverMode == OptionalToggle.Yes) {
 				_previousCell.SetOutgoingRiver (_dragDirection);
+			}
+			
+			if (_roadMode == OptionalToggle.Yes) {
+				_previousCell.AddRoad (_dragDirection);
 			}
 		}
 	}
@@ -147,5 +155,9 @@ public class VoronoiMapEditor : MonoBehaviour {
 
 	public void SetRiverMode (int mode) {
 		_riverMode = (OptionalToggle) mode;
+	}
+
+	public void SetRoadMode (int mode) {
+		_roadMode = (OptionalToggle) mode;
 	}
 }

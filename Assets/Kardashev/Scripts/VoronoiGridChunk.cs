@@ -10,6 +10,7 @@ public class VoronoiGridChunk : MonoBehaviour {
 
 	public VoronoiMesh Terrain;
 	public VoronoiMesh Rivers;
+	public VoronoiMesh Roads;
 
 	private void Awake () {
 		_cells = new List<VoronoiCell> ();
@@ -50,18 +51,21 @@ public class VoronoiGridChunk : MonoBehaviour {
 	public void AddToAtmosphere (SgtAtmosphere atmosphere) {
 		atmosphere.AddInnerRenderer (Terrain.GetComponent<MeshRenderer> ());
 		atmosphere.AddInnerRenderer (Rivers.GetComponent<MeshRenderer> ());
+		atmosphere.AddInnerRenderer (Roads.GetComponent<MeshRenderer> ());
 	}
-	
-	public void Triangulate () {
+
+	private void Triangulate () {
 		Terrain.Clear ();
 		Rivers.Clear ();
+		Roads.Clear ();
 		
-		for (int i = 0; i < _cells.Count; ++i) {
-			Triangulate (_cells[i]);
+		foreach (VoronoiCell cell in _cells) {
+			Triangulate (cell);
 		}
 		
 		Terrain.Apply ();
 		Rivers.Apply ();
+		Roads.Apply ();
 	}
 
 	private void Triangulate (VoronoiCell cell) {
@@ -90,12 +94,26 @@ public class VoronoiGridChunk : MonoBehaviour {
 				TriangulateAdjacentToRiver (cell, direction, center, e);
 			}
 		} else {
-			TriangulateEdgeFan (center, e, cell.Color);
+			TriangulateWithoutRiver (cell, direction, center, e);
 		}
 
 		if (cell.EdgeConnections.Contains (direction)) {
 			TriangulateConnection (cell, direction, e);
 		} 
+	}
+
+	private void TriangulateWithoutRiver (VoronoiCell cell, VoronoiDirection direction, Vector3 center, EdgeVertices e) {
+		TriangulateEdgeFan (center, e, cell.Color);
+
+		if (cell.HasRoads) {
+			Vector2 interpolators = GetRoadInterpolators (cell, direction);
+			TriangulateRoad (
+				center,
+				Vector3.Lerp (center, e.V1, interpolators.x),
+				Vector3.Lerp (center, e.V5, interpolators.y),
+				e, cell.HasRoadThroughEdge (direction)
+			);
+		}
 	}
 
 	private void TriangulateAdjacentToRiver (VoronoiCell cell, VoronoiDirection direction, Vector3 center, EdgeVertices e) {
@@ -221,8 +239,8 @@ public class VoronoiGridChunk : MonoBehaviour {
 	}
 
 	private void TriangulateWithRiver (VoronoiCell cell, VoronoiDirection direction, Vector3 center, EdgeVertices e) {
-		Vector3 centerL, centerR;
-		centerL = centerR = center;
+		Vector3 centerR;
+		Vector3 centerL = centerR = center;
 
 		// 4 sided straight
 		if (cell.HasRiverThroughEdge (direction.Next2 (cell)) && cell.HasRiverThroughEdge (direction.Previous2 (cell))) {
@@ -333,7 +351,7 @@ public class VoronoiGridChunk : MonoBehaviour {
 		Terrain.AddTriangleColor (color);
 	}
 
-	private void TriangulateEdgeStrip (EdgeVertices e1, Color c1, EdgeVertices e2, Color c2) {
+	private void TriangulateEdgeStrip (EdgeVertices e1, Color c1, EdgeVertices e2, Color c2, bool hasRoad = false) {
 		Terrain.AddQuad (e1.V1, e1.V2, e2.V1, e2.V2);
 		Terrain.AddQuadColor (c1, c2);
 		Terrain.AddQuad (e1.V2, e1.V3, e2.V2, e2.V3);
@@ -342,6 +360,10 @@ public class VoronoiGridChunk : MonoBehaviour {
 		Terrain.AddQuadColor (c1, c2);
 		Terrain.AddQuad (e1.V4, e1.V5, e2.V4, e2.V5);
 		Terrain.AddQuadColor (c1, c2);
+
+		if (hasRoad) {
+			TriangulateRoadSegment (e1.V2, e1.V3, e1.V4, e2.V2, e2.V3, e2.V4);
+		}
 	}
 
 	private void TriangulateConnection (VoronoiCell cell, VoronoiDirection direction, EdgeVertices e1) {
@@ -363,9 +385,9 @@ public class VoronoiGridChunk : MonoBehaviour {
 		}
 
 		if (cell.GetEdgeType (direction) == VoronoiEdgeType.Slope) {
-			TriangulateEdgeTerraces (e1, cell, e2, neighbor);
+			TriangulateEdgeTerraces (e1, cell, e2, neighbor, cell.HasRoadThroughEdge (direction));
 		} else {
-			TriangulateEdgeStrip (e1, cell.Color, e2, neighbor.Color);
+			TriangulateEdgeStrip (e1, cell.Color, e2, neighbor.Color, cell.HasRoadThroughEdge (direction));
 		}
 		
 		VoronoiCell nextNeighbor = cell.GetNeighbor (direction.Next (cell));
@@ -388,22 +410,22 @@ public class VoronoiGridChunk : MonoBehaviour {
 
 	private void TriangulateEdgeTerraces (
 		EdgeVertices begin, VoronoiCell beginCell, 
-		EdgeVertices end, VoronoiCell endCell) {
+		EdgeVertices end, VoronoiCell endCell, bool hasRoad) {
 
 		EdgeVertices e2 = EdgeVertices.TerraceLerp (begin, end, 1);
 		Color c2 = VoronoiMetrics.TerraceLerp (beginCell.Color, endCell.Color, 1);
 
-		TriangulateEdgeStrip (begin, beginCell.Color, e2, c2);
+		TriangulateEdgeStrip (begin, beginCell.Color, e2, c2, hasRoad);
 
 		for (int i = 2; i < VoronoiMetrics.TerraceSteps; ++i) {
 			EdgeVertices e1 = e2;
 			Color c1 = c2;
 			e2 = EdgeVertices.TerraceLerp (begin, end, i);
 			c2 = VoronoiMetrics.TerraceLerp (beginCell.Color, endCell.Color, i);
-			TriangulateEdgeStrip (e1, c1, e2, c2);
+			TriangulateEdgeStrip (e1, c1, e2, c2, hasRoad);
 		}
 
-		TriangulateEdgeStrip (e2, c2, end, endCell.Color);
+		TriangulateEdgeStrip (e2, c2, end, endCell.Color, hasRoad);
 	} 
 
 	private void TriangulateCorner (
@@ -550,5 +572,45 @@ public class VoronoiGridChunk : MonoBehaviour {
 		} else {
 			Rivers.AddQuadUV (0f, 1f, v, v + 0.2f);
 		}
+	}
+
+	private void TriangulateRoadSegment (Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector3 v5, Vector3 v6) {
+		Roads.AddQuad (v1, v2, v4, v5);
+		Roads.AddQuad (v2, v3, v5, v6);
+		Roads.AddQuadUV (0f, 1f, 0f, 0f);
+		Roads.AddQuadUV (1f, 0f, 0f, 0f);
+	}
+
+	private void TriangulateRoad (Vector3 center, Vector3 mL, Vector3 mR, EdgeVertices e, bool hasRoadThroughCellEdge) {
+		if (hasRoadThroughCellEdge) {
+			Vector3 mC = Vector3.Lerp (mL, mR, 0.5f);
+			TriangulateRoadSegment (mL, mC, mR, e.V2, e.V3, e.V4);
+		
+			Roads.AddTriangle (center, mL, mC);
+			Roads.AddTriangle (center, mC, mR);
+			Roads.AddTriangleUV (new Vector2 (1f, 0f), new Vector2 (0f, 0f), new Vector2 (1f, 0f));
+			Roads.AddTriangleUV (new Vector2 (1f, 0f), new Vector2 (1f, 0f), new Vector2 (0f, 0f));
+		} else {
+			TriangulateRoadEdge (center, mL, mR);
+		}
+		
+	}
+
+	private void TriangulateRoadEdge (Vector3 center, Vector3 mL, Vector3 mR) {
+		Roads.AddTriangle (center, mL, mR);
+		Roads.AddTriangleUV (new Vector2 (1f, 0f), new Vector2 (0f, 0f), new Vector2(0f, 0f));
+	}
+
+	private Vector2 GetRoadInterpolators (VoronoiCell cell, VoronoiDirection direction) {
+		Vector2 interpolators;
+
+		if (cell.HasRoadThroughEdge (direction)) {
+			interpolators.x = interpolators.y = 0.5f;
+		} else {
+			interpolators.x = cell.HasRoadThroughEdge (direction.Previous (cell)) ? 0.5f : 0.25f;
+			interpolators.y = cell.HasRoadThroughEdge (direction.Next (cell)) ? 0.5f : 0.25f;
+		}
+		
+		return interpolators;
 	}
 }
