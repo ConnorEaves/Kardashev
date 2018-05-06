@@ -44,6 +44,36 @@ public partial class VoronoiCell {
 		get { return BaseElevation + (_elevation + VoronoiMetrics.RiverSurfaceElevationOffset) * VoronoiMetrics.ElevationStep; }
 	}
 
+	public VoronoiDirection RiverBeginOrEndDirection {
+		get { return _hasIncomingRiver ? IncomingRiver : OutgoingRiver; }
+	}
+
+	public Vector3 GetRiverMidpointOffset (VoronoiDirection direction) {
+		VoronoiDirection prevRiver = direction;
+		while (!HasRiverThroughEdge (prevRiver)) {
+			prevRiver = prevRiver.Previous (this);
+		}
+			
+		int steps = 0;
+		VoronoiDirection nextRiver = prevRiver;
+		while (!HasRiverThroughEdge (nextRiver) || nextRiver == prevRiver) {
+			nextRiver = nextRiver.Next (this);
+			++steps;
+		}
+
+		VoronoiDirection halfDirection = prevRiver;
+		for (int i = 0; i < steps / 2; ++i) {
+			halfDirection = halfDirection.Next (this);
+		}
+
+		if (steps % 2 == 0) {
+			return VoronoiMetrics.GetSolidEdgeMiddle (this, halfDirection) *
+			         VoronoiMetrics.InnerToOuter (this, halfDirection);
+		}
+		return VoronoiMetrics.GetSecondSolidCorner (this, halfDirection);
+		
+	}
+
 	public void SetOutgoingRiver (VoronoiDirection direction) {
 		if (_hasOutgoingRiver && _outgoingRiver == direction) {
 			return;

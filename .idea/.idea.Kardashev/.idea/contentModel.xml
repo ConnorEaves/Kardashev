@@ -1174,4 +1174,10 @@
       </e>
     </e>
   </component>
+  <component name="RiderRiderContentModelStore">
+    <excludedPaths>
+      <Path>Temp</Path>
+      <Path>Library</Path>
+    </excludedPaths>
+  </component>
 </project>

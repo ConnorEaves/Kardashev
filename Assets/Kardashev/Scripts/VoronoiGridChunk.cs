@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 
 public class VoronoiGridChunk : MonoBehaviour {
@@ -118,6 +119,10 @@ public class VoronoiGridChunk : MonoBehaviour {
 
 	private void TriangulateAdjacentToRiver (VoronoiCell cell, VoronoiDirection direction, Vector3 center, EdgeVertices e) {
 
+		if (cell.HasRoads) {
+			TriangulateRoadAdjacentToRiver (cell, direction, center, e);
+		}
+		
 		// Inside two step turn
 		if (cell.HasRiverThroughEdge (direction.Next (cell)) &&
 		    cell.HasRiverThroughEdge (direction.Previous (cell))) {
@@ -210,6 +215,53 @@ public class VoronoiGridChunk : MonoBehaviour {
 		
 		TriangulateEdgeStrip (m, cell.Color, e, cell.Color);
 		TriangulateEdgeFan (center, m, cell.Color);
+	}
+
+	private void TriangulateRoadAdjacentToRiver (VoronoiCell cell, VoronoiDirection direction, Vector3 center, EdgeVertices e) {
+		
+		bool hasRoadThroughEdge = cell.HasRoadThroughEdge (direction);
+		bool previousHasRiver = cell.HasRiverThroughEdge (direction.Previous (cell));
+		bool nextHasRiver = cell.HasRiverThroughEdge (direction.Next (cell));
+		
+		Vector2 interpolators = GetRoadInterpolators (cell, direction);
+		Vector3 roadCenter = center;
+
+		if (cell.HasRiverBeginOrEnd) {
+			roadCenter -= VoronoiMetrics.GetSolidEdgeMiddle (cell, cell.RiverBeginOrEndDirection) * (1 / 3f);
+			
+		}  else if (cell.IncomingRiver == cell.OutgoingRiver.Previous (cell)) {
+			roadCenter -= VoronoiMetrics.GetSecondCorner (cell, cell.IncomingRiver) * 0.2f;
+
+		} else if (cell.IncomingRiver == cell.OutgoingRiver.Next (cell)) {
+			roadCenter -= VoronoiMetrics.GetFirstCorner (cell, cell.IncomingRiver) * 0.2f;
+		
+		} else if (cell.HasRoadOnThisSideOfRiver (direction)) {
+			
+			Vector3 offset = cell.GetRiverMidpointOffset (direction);
+
+			if (previousHasRiver && nextHasRiver) {
+				roadCenter += offset * 0.7f;
+				center += offset * 0.5f;
+				
+			} else {
+				roadCenter += offset * 0.5f;
+				center += offset * 0.2f;
+			}
+			
+		} else {
+			return;
+		}
+		
+		Vector3 mL = Vector3.Lerp (roadCenter, e.V1, interpolators.x);
+		Vector3 mR = Vector3.Lerp (roadCenter, e.V5, interpolators.y);
+		TriangulateRoad (roadCenter, mL, mR, e, hasRoadThroughEdge);
+
+		if (previousHasRiver) {
+			TriangulateRoadEdge (roadCenter, center, mL);
+		}
+		if (nextHasRiver) {
+			TriangulateRoadEdge (roadCenter, mR, center);
+		}
 	}
 
 	private void TriangulateWithRiverBeginOrEnd (VoronoiCell cell, VoronoiDirection direction, Vector3 center, EdgeVertices e) {

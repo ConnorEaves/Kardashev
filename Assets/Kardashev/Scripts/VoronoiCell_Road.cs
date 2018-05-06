@@ -16,6 +16,24 @@ public partial class VoronoiCell {
 		get { return Roads.Any (road => road); }
 	}
 
+	public bool HasRoadOnThisSideOfRiver (VoronoiDirection direction) {
+		VoronoiDirection dir = direction;
+		while (!HasRiverThroughEdge (dir)) {
+			if (HasRoadThroughEdge (dir)) {
+				return true;
+			}
+			dir = dir.Previous (this);
+		}
+		dir = direction;
+		while (!HasRiverThroughEdge (dir)) {
+			if (HasRoadThroughEdge (dir)) {
+				return true;
+			}
+			dir = dir.Next (this);
+		}
+		return false;
+	}
+
 	private void SetRoad (VoronoiDirection direction, bool state) {
 		Roads[direction] = state;
 		Neighbors[direction].Roads[direction.Opposite (this)] = state;
