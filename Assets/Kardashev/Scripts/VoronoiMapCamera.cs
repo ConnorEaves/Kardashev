@@ -19,6 +19,10 @@ public class VoronoiMapCamera : MonoBehaviour {
 		transform.localPosition = Target.transform.position + Vector3.up * Target.Radius;
 		_swivel = transform.GetChild (0);
 		_stick = _swivel.GetChild (0);
+
+		float adj = 1f / Mathf.Tan (SwivelMinZoom);
+		StickMaxZoom = 2 * -(1 + adj * adj);
+		
 		AdjustZoom (1f);
 	}
 

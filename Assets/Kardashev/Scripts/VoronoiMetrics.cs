@@ -22,7 +22,7 @@ public static class VoronoiMetrics {
 	public const float ElevationPerturbSrength = 0.05f;
 
 	public const float StreamBedElevationOffset = -1.75f;
-	public const float RiverSurfaceElevationOffset = -0.5f;
+	public const float WaterSurfaceElevationOffset = -0.5f;
 	
 	public static float OuterRadius (VoronoiCell cell, VoronoiDirection direction) {
 		return (cell.Corners[direction].magnitude + cell.Corners[direction + 1].magnitude) * 0.5f;
@@ -60,6 +60,13 @@ public static class VoronoiMetrics {
 		Vector3 v1 = cell.transform.localPosition + GetFirstSolidCorner (cell, direction);
 		VoronoiCell neighbor = cell.GetNeighbor (direction);
 		Vector3 v2 = neighbor.transform.localPosition + GetSecondSolidCorner (neighbor, neighbor.Neighbors.IndexOf (cell));
+		return v2 - v1;
+	}
+
+	public static Vector3 GetWaterBridge (VoronoiCell cell, VoronoiDirection direction) {
+		Vector3 v1 = cell.transform.position.normalized * cell.WaterSurfaceElevation + GetFirstSolidCorner (cell, direction);
+		VoronoiCell neighbor = cell.GetNeighbor (direction);
+		Vector3 v2 = neighbor.transform.position.normalized * neighbor.WaterSurfaceElevation + GetSecondSolidCorner (neighbor, neighbor.Neighbors.IndexOf (cell));
 		return v2 - v1;
 	}
 

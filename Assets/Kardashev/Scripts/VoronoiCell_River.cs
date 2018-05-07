@@ -41,7 +41,7 @@ public partial class VoronoiCell {
 	}
 
 	public float RiverSurfaceElevation {
-		get { return BaseElevation + (_elevation + VoronoiMetrics.RiverSurfaceElevationOffset) * VoronoiMetrics.ElevationStep; }
+		get { return BaseElevation + (_elevation + VoronoiMetrics.WaterSurfaceElevationOffset) * VoronoiMetrics.ElevationStep; }
 	}
 
 	public VoronoiDirection RiverBeginOrEndDirection {

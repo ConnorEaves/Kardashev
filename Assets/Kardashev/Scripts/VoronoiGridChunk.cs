@@ -12,6 +12,7 @@ public class VoronoiGridChunk : MonoBehaviour {
 	public VoronoiMesh Terrain;
 	public VoronoiMesh Rivers;
 	public VoronoiMesh Roads;
+	public VoronoiMesh Water;
 
 	private void Awake () {
 		_cells = new List<VoronoiCell> ();
@@ -53,12 +54,14 @@ public class VoronoiGridChunk : MonoBehaviour {
 		atmosphere.AddInnerRenderer (Terrain.GetComponent<MeshRenderer> ());
 		atmosphere.AddInnerRenderer (Rivers.GetComponent<MeshRenderer> ());
 		atmosphere.AddInnerRenderer (Roads.GetComponent<MeshRenderer> ());
+		atmosphere.AddInnerRenderer (Water.GetComponent<MeshRenderer> ());
 	}
 
 	private void Triangulate () {
 		Terrain.Clear ();
 		Rivers.Clear ();
 		Roads.Clear ();
+		Water.Clear ();
 		
 		foreach (VoronoiCell cell in _cells) {
 			Triangulate (cell);
@@ -67,6 +70,7 @@ public class VoronoiGridChunk : MonoBehaviour {
 		Terrain.Apply ();
 		Rivers.Apply ();
 		Roads.Apply ();
+		Water.Apply ();
 	}
 
 	private void Triangulate (VoronoiCell cell) {
@@ -100,7 +104,48 @@ public class VoronoiGridChunk : MonoBehaviour {
 
 		if (cell.EdgeConnections.Contains (direction)) {
 			TriangulateConnection (cell, direction, e);
-		} 
+		}
+
+		if (cell.IsUnderwater) {
+			TriangulateWater (cell, direction, center);
+		}
+	}
+
+	private void TriangulateWater (VoronoiCell cell, VoronoiDirection direction, Vector3 center) {
+		center = center.normalized * cell.WaterSurfaceElevation;
+		Vector3 c1 = center + VoronoiMetrics.GetFirstSolidCorner (cell, direction);
+		Vector3 c2 = center + VoronoiMetrics.GetSecondSolidCorner (cell, direction);
+
+		Water.AddTriangle (center, c1, c2);
+		
+		if (cell.EdgeConnections.Contains (direction)) {
+			VoronoiCell neighbor = cell.GetNeighbor (direction);
+			if (neighbor == null || !neighbor.IsUnderwater) {
+				return;
+			}
+
+			Vector3 bridge = VoronoiMetrics.GetWaterBridge (cell, direction);
+
+			Vector3 e1 = c1 + bridge;
+			Vector3 e2 = c2 + bridge;
+
+			Water.AddQuad (c1, c2, e1, e2);
+		}
+
+		if (cell.CornerConnections.Contains (direction)) {
+			VoronoiCell neighbor = cell.GetNeighbor (direction);
+			VoronoiCell nextNeighbor = cell.GetNeighbor (direction.Next (cell));
+
+			if (neighbor == null || !neighbor.IsUnderwater || nextNeighbor == null || !nextNeighbor.IsUnderwater) {
+				return;
+			}
+			
+			Vector3 bridge = VoronoiMetrics.GetWaterBridge (cell, direction);
+			Vector3 e2 = c2 + bridge;
+			
+			Water.AddTriangle (c2, e2, c2 + VoronoiMetrics.GetWaterBridge (cell, direction.Next (cell)));
+			
+		}
 	}
 
 	private void TriangulateWithoutRiver (VoronoiCell cell, VoronoiDirection direction, Vector3 center, EdgeVertices e) {

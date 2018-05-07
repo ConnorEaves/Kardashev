@@ -17,9 +17,12 @@ public class VoronoiMapEditor : MonoBehaviour {
 
 	private bool _applyColor;
 	private Color _activeColor;
-	
-	private bool _applyElevation;
-	private int _actiiveElevation;
+
+	private bool _applyElevation = true;
+	private int _activeElevation;
+
+	private bool _applyWaterLevel = true;
+	private int _activeWaterLevel;
 
 	private int _brushSize;
 
@@ -106,7 +109,11 @@ public class VoronoiMapEditor : MonoBehaviour {
 		}
 
 		if (_applyElevation) {
-			cell.Elevation = _actiiveElevation;
+			cell.Elevation = _activeElevation;
+		}
+
+		if (_applyWaterLevel) {
+			cell.WaterLevel = _activeWaterLevel;
 		}
 
 		if (_riverMode == OptionalToggle.No) {
@@ -146,7 +153,7 @@ public class VoronoiMapEditor : MonoBehaviour {
 	}
 	
 	public void SetElevation (float elevation) {
-		_actiiveElevation = (int)elevation;
+		_activeElevation = (int)elevation;
 	}
 	
 	public void SetBrushSize (float size) {
@@ -159,5 +166,13 @@ public class VoronoiMapEditor : MonoBehaviour {
 
 	public void SetRoadMode (int mode) {
 		_roadMode = (OptionalToggle) mode;
+	}
+
+	public void SetApplyWaterLevel (bool toggle) {
+		_applyWaterLevel = toggle;
+	}
+
+	public void SetWaterLevel (float level) {
+		_activeWaterLevel = (int) level;
 	}
 }

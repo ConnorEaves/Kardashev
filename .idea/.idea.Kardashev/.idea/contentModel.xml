@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ContentModelStore">
-    <e p="C:\Users\Kisho\.Rider2017.3\system\resharper-host\local\Transient\ReSharperHost\v11\SolutionCaches\_Kardashev.-1463483870.00" t="ExcludeRecursive" />
+    <e p="C:\Users\Kisho\.Rider2018.1\system\resharper-host\local\Transient\ReSharperHost\v12\SolutionCaches\_Kardashev.-1463483870.00" t="ExcludeRecursive" />
     <e p="X:\Kardashev" t="IncludeRecursive">
-      <e p="Assembly-CSharp-Editor-firstpass.csproj" t="IncludeRecursive" />
       <e p="Assembly-CSharp-Editor.csproj" t="IncludeRecursive" />
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
@@ -925,6 +924,7 @@
             <e p="VoronoiCell_Elevation.cs" t="Include" />
             <e p="VoronoiCell_River.cs" t="Include" />
             <e p="VoronoiCell_Road.cs" t="Include" />
+            <e p="VoronoiCell_Water.cs" t="Include" />
             <e p="VoronoiDirection.cs" t="Include" />
             <e p="VoronoiEdgeType.cs" t="Include" />
             <e p="VoronoiGrid.cs" t="Include" />
@@ -938,6 +938,7 @@
             <e p="River.shader" t="Include" />
             <e p="Road.shader" t="Include" />
             <e p="Vertex Colors.shader" t="Include" />
+            <e p="Water.shader" t="Include" />
           </e>
         </e>
         <e p="MIConvexHull" t="Include">
@@ -964,13 +965,6 @@
             <e p="VoronoiMesh.cs" t="Include" />
           </e>
           <e p="Triangulation.cs" t="Include" />
-        </e>
-        <e p="Plugins" t="Include">
-          <e p="Editor" t="Include">
-            <e p="JetBrains" t="Include">
-              <e p="Unity3DRider.cs" t="Include" />
-            </e>
-          </e>
         </e>
         <e p="Space Graphics Toolkit" t="Include">
           <e p="Editor" t="Include">
