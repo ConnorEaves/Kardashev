@@ -50,8 +50,9 @@ public class VoronoiMapEditor : MonoBehaviour {
 		Ray inputRay = Camera.main.ScreenPointToRay (Input.mousePosition);
 		RaycastHit hit;
 		if (Physics.Raycast (inputRay, out hit)) {
-			VoronoiCell currentCell = VoronoiGrid.GetCell (hit.point);
-
+			VoronoiGridChunk currentChunk = hit.transform.parent.GetComponent<VoronoiGridChunk> ();
+			VoronoiCell currentCell = VoronoiGrid.GetCell (hit.point, currentChunk.GetNeighborhood ());
+			
 			if (_previousCell && _previousCell != currentCell) {
 				ValidateDrag (currentCell);
 			} else {
