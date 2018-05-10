@@ -58,6 +58,12 @@ public class VoronoiGrid : MonoBehaviour {
 					 .First ();
 	}
 
+	public VoronoiCell GetCell (Vector3 position, List<VoronoiCell> neighborhood) {
+		position -= transform.position;
+		return neighborhood.OrderByDescending (x => Vector3.Dot (x.transform.localPosition.normalized, position.normalized))
+			.First ();
+	}
+
 	/// <summary>
 	/// Generate a new Voronoi Grid.
 	/// </summary>

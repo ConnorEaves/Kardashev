@@ -9,6 +9,8 @@ public class VoronoiGridChunk : MonoBehaviour {
 	private List<VoronoiCell> _cells;
 	private Queue<VoronoiCell> _cellQueue;
 
+	private List<VoronoiGridChunk> _neighbors;
+
 	public VoronoiMesh Terrain;
 	public VoronoiMesh Rivers;
 	public VoronoiMesh Roads;
@@ -17,6 +19,7 @@ public class VoronoiGridChunk : MonoBehaviour {
 	private void Awake () {
 		_cells = new List<VoronoiCell> ();
 		_cellQueue = new Queue<VoronoiCell> ();
+		_neighbors = new List<VoronoiGridChunk> ();
 	}
 
 	public void AddCell (VoronoiCell cell) {
@@ -35,10 +38,27 @@ public class VoronoiGridChunk : MonoBehaviour {
 					AddCell (neighbor);
 					return true;
 				}
+				if (neighbor.Chunk != null && neighbor.Chunk != this) {
+					AddNeighbor (neighbor.Chunk);
+				}
 			}
 			_cellQueue.Dequeue ();
 		}
 		return false;
+	}
+
+	private void AddNeighbor (VoronoiGridChunk chunk) {
+		if (!_neighbors.Contains (chunk)) {
+			_neighbors.Add (chunk);
+		}
+	}
+	
+	public List<VoronoiCell> GetNeighborhood () {
+		List<VoronoiCell> neighborhood = new List<VoronoiCell> (_cells);
+		foreach (VoronoiGridChunk neighbor in _neighbors) {
+			neighborhood.AddRange (neighbor._cells);
+		}
+		return neighborhood;
 	}
 
 	public void Refresh () {
